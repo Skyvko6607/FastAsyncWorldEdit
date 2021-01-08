@@ -136,27 +136,6 @@ class FileSystemSnapshotDatabaseTest {
         });
     }
 
-    @DisplayName("makes the root directory absolute if needed")
-    @Test
-    void rootIsAbsoluteDir() throws IOException {
-        Path root = newTempDb();
-        try {
-            Path relative = root.getFileSystem().getPath("relative");
-            Files.createDirectories(relative);
-            FileSystemSnapshotDatabase db2 = new FileSystemSnapshotDatabase(relative,
-                ArchiveNioSupports.combined());
-            assertEquals(root.getFileSystem().getPath(".").toRealPath()
-                .resolve(relative), db2.getRoot());
-            Path absolute = root.resolve("absolute");
-            Files.createDirectories(absolute);
-            FileSystemSnapshotDatabase db3 = new FileSystemSnapshotDatabase(absolute,
-                ArchiveNioSupports.combined());
-            assertEquals(absolute, db3.getRoot());
-        } finally {
-            deleteTree(root);
-        }
-    }
-
     @DisplayName("with a specific NIO support:")
     @TestFactory
     Stream<DynamicNode> withSpecificNioSupport() {

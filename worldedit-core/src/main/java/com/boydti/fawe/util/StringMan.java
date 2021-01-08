@@ -75,20 +75,6 @@ public class StringMan {
                 : String.format("%.1f EiB", (bytes >> 20) / 0x1p40);
     }
 
-    public static String prettyFormat(double d) {
-        if (d == Double.MIN_VALUE || d == Double.NEGATIVE_INFINITY) {
-            return "-∞";
-        }
-        if (d == Double.MAX_VALUE || d == Double.POSITIVE_INFINITY) {
-            return "∞";
-        }
-        if (d == (long) d) {
-            return String.format("%d", (long) d);
-        } else {
-            return String.format("%s", d);
-        }
-    }
-
     public static boolean isBracketForwards(char c) {
         switch (c) {
             case '[':
