@@ -1,3 +1,6 @@
+
+#This version is intended only for servers using SlimeWorldManager.
+
 <p align="center">
   <img src="fawe-logo.png" width="300">
 </p>
