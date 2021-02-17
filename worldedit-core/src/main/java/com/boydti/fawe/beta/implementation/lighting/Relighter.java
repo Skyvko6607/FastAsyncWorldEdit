@@ -1,5 +1,7 @@
 package com.boydti.fawe.beta.implementation.lighting;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 public interface Relighter {
 
     /**
@@ -65,6 +67,15 @@ public interface Relighter {
      * @return is the relight stuff to be relit empty
      */
     boolean isEmpty();
+
+    ReentrantLock getLock();
+
+    /**
+     * Returns true if the Relighter has been flushed
+     *
+     * @return true if finished
+     */
+    boolean isFinished();
 
     class SkipReason {
         public static final byte NONE = 0;

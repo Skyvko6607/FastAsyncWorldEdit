@@ -104,8 +104,11 @@ import com.sk89q.worldedit.regions.factory.RegionFactory;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.HandSide;
 import com.sk89q.worldedit.util.TreeGenerator;
+import com.sk89q.worldedit.util.formatting.text.Component;
 import com.sk89q.worldedit.util.formatting.text.TextComponent;
 import com.sk89q.worldedit.util.formatting.text.TranslatableComponent;
+import com.sk89q.worldedit.util.formatting.text.event.ClickEvent;
+import com.sk89q.worldedit.util.formatting.text.format.TextColor;
 import com.sk89q.worldedit.world.block.BlockID;
 import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
@@ -142,6 +145,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class BrushCommands {
 
     private final WorldEdit worldEdit;
+
+    private static final Component UNBIND_COMMAND_COMPONENT = TextComponent.builder("/brush unbind", TextColor.AQUA)
+            .clickEvent(ClickEvent.suggestCommand("/brush unbind"))
+            .build();
 
     /**
      * Create a new instance.
@@ -337,7 +344,6 @@ public class BrushCommands {
                               @Switch(name = 'd', desc = "sags the catenary toward the facing direction")
                                   boolean facingDirection) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
-        Brush brush = new CatenaryBrush(shell, select, facingDirection, lengthFactor);
         set(context, new CatenaryBrush(shell, select, facingDirection, lengthFactor))
             .setSize(radius).setFill(fill);
     }
@@ -1034,6 +1040,7 @@ public class BrushCommands {
 
             player.print(
                 Caption.of("fawe.worldedit.brush.brush.equipped", arguments.get().split(" ")[1]));
+            ToolCommands.sendUnbindInstruction(player, UNBIND_COMMAND_COMPONENT);
         }
         return settings;
     }
@@ -1267,5 +1274,6 @@ public class BrushCommands {
         tool.setBrush(new OperationFactoryBrush(factory, shape, session), permission);
 
         player.printInfo(TranslatableComponent.of("worldedit.brush.operation.equip", TextComponent.of(factory.toString())));
+        ToolCommands.sendUnbindInstruction(player, UNBIND_COMMAND_COMPONENT);
     }
 }

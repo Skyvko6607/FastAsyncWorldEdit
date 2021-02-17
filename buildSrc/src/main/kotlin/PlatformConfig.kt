@@ -21,16 +21,11 @@ fun Project.applyPlatformAndCoreConfiguration() {
     apply(plugin = "java")
     apply(plugin = "eclipse")
     apply(plugin = "idea")
-    apply(plugin = "maven")
+    apply(plugin = "maven-publish")
 //    apply(plugin = "checkstyle")
     apply(plugin = "com.github.johnrengelman.shadow")
 
     ext["internalVersion"] = "$version;${rootProject.ext["gitCommitHash"]}"
-
-    configure<JavaPluginConvention> {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
 
     tasks
         .withType<JavaCompile>()
@@ -112,11 +107,11 @@ fun Project.applyPlatformAndCoreConfiguration() {
 
 fun Project.applyShadowConfiguration() {
     tasks.named<ShadowJar>("shadowJar") {
-//        archiveClassifier.set("dist")
         dependencies {
             include(project(":worldedit-libs:core"))
             include(project(":worldedit-libs:${project.name.replace("worldedit-", "")}"))
             include(project(":worldedit-core"))
+            exclude("com.google.code.findbugs:jsr305")
         }
         archiveFileName.set("FastAsyncWorldEdit-${project.version}.jar")
         exclude("GradleStart**")

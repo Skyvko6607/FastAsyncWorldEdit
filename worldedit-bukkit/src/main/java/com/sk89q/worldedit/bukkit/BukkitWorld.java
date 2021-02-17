@@ -289,6 +289,9 @@ public class BukkitWorld extends AbstractWorld {
         for (TreeGenerator.TreeType type : TreeGenerator.TreeType.values()) {
             if (treeTypeMapping.get(type) == null) {
                 WorldEdit.logger.error("No TreeType mapping for TreeGenerator.TreeType." + type);
+                // FAWE start
+                WorldEdit.logger.warn("Your FAWE version is newer than " + Bukkit.getVersion() + " and contains features of future minecraft versions which do not exist in " + Bukkit.getVersion() + ", hence the tree type " + type + " is not available.");
+                // FAWE end
             }
         }
     }
@@ -560,5 +563,12 @@ public class BukkitWorld extends AbstractWorld {
     public void sendFakeChunk(Player player, ChunkPacket packet) {
         org.bukkit.entity.Player bukkitPlayer = BukkitAdapter.adapt(player);
         WorldEditPlugin.getInstance().getBukkitImplAdapter().sendFakeChunk(getWorld(), bukkitPlayer, packet);
+    }
+
+    @Override
+    public void flush() {
+        if (worldNativeAccess != null) {
+            worldNativeAccess.flush();
+        }
     }
 }

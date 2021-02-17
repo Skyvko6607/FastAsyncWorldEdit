@@ -1,5 +1,7 @@
 package com.boydti.fawe.beta.implementation.lighting;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 public class NullRelighter implements Relighter {
 
     public static NullRelighter INSTANCE = new NullRelighter();
@@ -44,6 +46,16 @@ public class NullRelighter implements Relighter {
 
     @Override
     public boolean isEmpty() {
+        return true;
+    }
+
+    @Override
+    public ReentrantLock getLock() {
+        return null;
+    }
+
+    @Override
+    public boolean isFinished() {
         return true;
     }
 }

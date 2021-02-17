@@ -20,6 +20,8 @@
 package com.sk89q.worldedit;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.beta.implementation.lighting.NullRelighter;
+import com.boydti.fawe.beta.implementation.lighting.Relighter;
 import com.boydti.fawe.config.Caption;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLimit;
@@ -109,7 +111,9 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.CylinderRegion;
 import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.FlatRegion;
+import com.sk89q.worldedit.regions.NullRegion;
 import com.sk89q.worldedit.regions.Region;
+import com.sk89q.worldedit.regions.RegionIntersection;
 import com.sk89q.worldedit.regions.Regions;
 import com.sk89q.worldedit.regions.shape.ArbitraryBiomeShape;
 import com.sk89q.worldedit.regions.shape.ArbitraryShape;
@@ -222,6 +226,11 @@ public class EditSession extends PassthroughExtent implements AutoCloseable {
     private final int maxY;
     private final List<WatchdogTickingExtent> watchdogExtents = new ArrayList<>(2);
 
+    private final Relighter relighter;
+    private final boolean wnaMode;
+
+    @Nullable
+    private final Region[] allowedRegions;
 
     @Deprecated
     public EditSession(@NotNull EventBus bus, World world, @Nullable Player player,
@@ -257,6 +266,9 @@ public class EditSession extends PassthroughExtent implements AutoCloseable {
         this.maxY = world.getMaxY();
         this.blockBag = builder.getBlockBag();
         this.history = changeSet != null;
+        this.relighter = builder.getRelighter();
+        this.wnaMode = builder.isWNAMode();
+        this.allowedRegions = builder.getAllowedRegions() != null ? builder.getAllowedRegions().clone() : null;
     }
 
     /**
@@ -304,8 +316,7 @@ public class EditSession extends PassthroughExtent implements AutoCloseable {
     }
 
     /**
-     * The region extent restricts block placements to allow max Y regions.
-     * TODO This doc needs to be rewritten because it may not actually describe what it does.
+     * Returns the RegionExtent that will restrict an edit, or null.
      *
      * @return FaweRegionExtent (may be null)
      */
@@ -478,6 +489,11 @@ public class EditSession extends PassthroughExtent implements AutoCloseable {
     public Mask getSourceMask() {
         ExtentTraverser<SourceMaskExtent> maskingExtent = new ExtentTraverser<>(getExtent()).find(SourceMaskExtent.class);
         return maskingExtent != null ? maskingExtent.get().getMask() : null;
+    }
+
+    @Nullable
+    public Region[] getAllowedRegions() {
+        return allowedRegions;
     }
 
     public void addTransform(ResettableExtent transform) {
@@ -1075,8 +1091,30 @@ public class EditSession extends PassthroughExtent implements AutoCloseable {
                 player.printError(TranslatableComponent.of("fawe.cancel.worldedit.cancel.reason.outside.level"));
             }
         }
+        if (wnaMode) {
+            getWorld().flush();
+        }
         // Reset limit
         limit.set(originalLimit);
+        try {
+            if (relighter != null && !(relighter instanceof NullRelighter)) {
+                // Don't relight twice!
+                if (!relighter.isFinished() && relighter.getLock().tryLock()) {
+                    try {
+                        if (Settings.IMP.LIGHTING.REMOVE_FIRST) {
+                            relighter.removeAndRelight(true);
+                        } else {
+                            relighter.fixLightingSafe(true);
+                        }
+                    } finally {
+                        relighter.getLock().unlock();
+                    }
+                }
+            }
+        } catch (Throwable e) {
+            player.printError(TranslatableComponent.of("fawe.error.lighting"));
+            e.printStackTrace();
+        }
         // Enqueue it
         if (getChangeSet() != null) {
             if (Settings.IMP.HISTORY.COMBINE_STAGES) {
@@ -1524,7 +1562,13 @@ public class EditSession extends PassthroughExtent implements AutoCloseable {
         copy.setTransform(new AffineTransform().translate(dir.multiply(size)));
         copy.setCopyingEntities(copyEntities);
         copy.setCopyingBiomes(copyBiomes);
-        mask = MaskIntersection.of(getSourceMask(), mask).optimize();
+        final Region allowedRegion;
+        if (allowedRegions == null || allowedRegions.length == 0) {
+            allowedRegion = new NullRegion();
+        } else {
+            allowedRegion = new RegionIntersection(allowedRegions);
+        }
+        mask = MaskIntersection.of(getSourceMask(), mask, new RegionMask(allowedRegion)).optimize();
         if (mask != Masks.alwaysTrue()) {
             setSourceMask(null);
             copy.setSourceMask(mask);
@@ -1584,7 +1628,7 @@ public class EditSession extends PassthroughExtent implements AutoCloseable {
 
         if (disAbs.getBlockX() < size.getBlockX() && disAbs.getBlockY() < size.getBlockY() && disAbs.getBlockZ() < size.getBlockZ()) {
             // Buffer if overlapping
-            disableQueue();
+            enableQueue();
         }
 
         ForwardExtentCopy copy = new ForwardExtentCopy(this, region, this, to);
@@ -1599,14 +1643,20 @@ public class EditSession extends PassthroughExtent implements AutoCloseable {
         copy.setRemovingEntities(moveEntities);
         copy.setCopyingBiomes(copyBiomes);
         copy.setRepetitions(1);
-        if (mask != null) {
-            new MaskTraverser(mask).reset(this);
+        final Region allowedRegion;
+        if (allowedRegions == null || allowedRegions.length == 0) {
+            allowedRegion = new NullRegion();
+        } else {
+            allowedRegion = new RegionIntersection(allowedRegions);
+        }
+        Mask sourceMask = this.getSourceMask();
+        mask = MaskIntersection.of(sourceMask, mask, new RegionMask(allowedRegion)).optimize();
+        if (mask != Masks.alwaysTrue()) {
             copy.setSourceMask(mask);
-            if (this.getSourceMask() == mask) {
+            if (sourceMask != null && sourceMask.equals(mask)) {
                 setSourceMask(null);
             }
         }
-
         Operations.completeBlindly(copy);
         return this.changes = copy.getAffected();
     }

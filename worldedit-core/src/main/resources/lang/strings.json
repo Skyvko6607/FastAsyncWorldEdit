@@ -104,6 +104,7 @@
 	"fawe.error.worldedit.some.fails.blockbag": "Missing blocks: {0}",
     "fawe.error.mask.angle": "Cannot combine degree with block-step",
     "fawe.error.invalid-flag": "The flag {0} is not applicable here",
+    "fawe.error.lighting": "Error when attempting lighting. You may need to reload the chunks to see the edit.",
 
 	"fawe.cancel.worldedit.cancel.count": "Cancelled {0} edits.",
 	"fawe.cancel.worldedit.cancel.reason.confirm": "Use //confirm to execute {2}",
@@ -134,7 +135,7 @@
 	"fawe.tips.tip.select.connected": "Tip: Select all connected blocks with //sel fuzzy",
 	"fawe.tips.tip.set.pos1": "Tip: Use pos1 as a pattern with //set pos1",
 	"fawe.tips.tip.farwand": "Tip: Select distant points with //farwand",
-	"fawe.tips.tip.discord": "Need help using FAWE? https://discord.gg/KxkjDVg",
+	"fawe.tips.tip.discord": "Need help using FAWE? https://discord.gg/intellectualsites",
 	"fawe.tips.tip.lazycut": "Tip: It is safer to use //lazycut",
 	"fawe.tips.tip.fast": "Tip: Set fast and without undo using //fast",
 	"fawe.tips.tip.cancel": "Tip: You can //cancel an edit in progress",
@@ -407,7 +408,7 @@
     "worldedit.timezone.set": "Timezone set for this session to: {0}",
     "worldedit.timezone.current": "The current time in that timezone is: {0}",
     "worldedit.version.version": "FAWE version:\n - Date {0}\n - Commit {1}\n - Build {2}\n - Platform {3}",
-    "worldedit.version.bukkit.unsupported-adapter": "This FAWE version does not fully support your version of Bukkit. Block entities (e.g. chests) will be empty, block properties (e.g. rotation) will be missing, and other things may not work. Update FAWE to restore this functionality:\n{0}",
+    "worldedit.version.bukkit.unsupported-adapter": "This FAWE version does not fully support your version of Bukkit. Block entities (e.g. chests) will be empty, block properties (e.g. rotation) will be missing, and other things may not work.\nUpdate FAWE and your server software to restore this functionality:\n{0}",
 
     "worldedit.command.time-elapsed": "{0}s elapsed (history: {1} changed; {2} blocks/sec).",
     "worldedit.command.permissions": "You are not permitted to do that. Are you in the right mode?",
@@ -445,6 +446,8 @@
     "worldedit.tool.lrbuild.equip": "Long-range building tool bound to {0}.",
     "worldedit.tool.lrbuild.set": "Left-click set to {0}; right-click set to {1}.",
     "worldedit.tool.stack.equip": "Stack tool bound to {0}.",
+
+    "worldedit.tool.unbind-instruction": "Run {0} while holding the item to unbind it.",
 
     "worldedit.tool.superpickaxe.mode.single": "Mode is now single. Left click with a pickaxe. // to disable.",
     "worldedit.tool.superpickaxe.mode.area": "Mode is now area. Left click with a pickaxe. // to disable.",
